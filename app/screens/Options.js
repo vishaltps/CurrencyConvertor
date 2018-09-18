@@ -20,7 +20,7 @@ class Options extends Component {
     }
 
     handleSitesPress = () => {
-        Linking.openURL("httpdds://fixer.io").catch(() => this.props.alertWithType("error", "Sorry!", "fixer io is not available"))
+        Linking.openURL("https://fixer.io").catch(() => this.props.alertWithType("error", "Sorry!", "fixer io is not available"))
     }
 
     render() {

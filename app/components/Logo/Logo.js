@@ -1,80 +1,91 @@
 import React, { Component } from 'react';
-import { View, Image, ImageBackground, Platform, Text, Keyboard, Animated } from 'react-native';
-import styles from './styles';
-import PropTypes from 'prop-types';
+import { View, Text, Keyboard, Animated, Platform, StyleSheet } from 'react-native';
+
+import styles, { imageSizes } from './styles';
 
 const ANIMATION_DURATION = 250;
 
 class Logo extends Component {
-    static propTypes = {
-        tintColor: PropTypes.string
-    }
     constructor(props) {
         super(props);
-        this.containerImageWidth = new Animated.Value(styles.$largeContainerSize);
-        this.imageWidth = new Animated.Value(styles.$largeImageSize);
+
+        this.state = {
+            containerImageWidth: new Animated.Value(imageSizes.$largeContainerSize),
+            imageWidth: new Animated.Value(imageSizes.$largeImageSize),
+        };
     }
 
     componentDidMount() {
-        let showListener = "keyboardWillShow";
-        let hideListener = "keyboardWillHide";
-        if (Platform.OS === "android") {
-            showListener = "keyboardDidShow";
-            hideListener = "keyboardDidHide";
-        }
-        this.keyboardShowListner = Keyboard.addListener(showListener, this.keyboardShow)
-        this.keyboardHideListner = Keyboard.addListener(hideListener, this.keyboardHide)
-    };
+        const name = Platform.OS === 'ios' ? 'Will' : 'Did';
+        this.keyboardDidShowListener = Keyboard.addListener(
+            `keyboard${name}Show`,
+            this.keyboardWillShow,
+        );
+        this.keyboardDidHideListener = Keyboard.addListener(
+            `keyboard${name}Hide`,
+            this.keyboardWillHide,
+        );
+    }
 
     componentWillUnmount() {
-        this.keyboardShowListner.remove();
-        this.keyboardHideListner.remove();
-    };
+        this.keyboardDidShowListener.remove();
+        this.keyboardDidHideListener.remove();
+    }
 
-    keyboardShow = () => {
+    keyboardWillShow = () => {
         Animated.parallel([
-            Animated.timing(this.containerImageWidth, {
-                toValue: styles.$smallContainerSize,
+            Animated.timing(this.state.containerImageWidth, {
+                toValue: imageSizes.$smallContainerSize,
                 duration: ANIMATION_DURATION,
             }),
-            Animated.timing(this.imageWidth, {
-                toValue: styles.$smallImageSize,
+            Animated.timing(this.state.imageWidth, {
+                toValue: imageSizes.$smallImageSize,
                 duration: ANIMATION_DURATION,
-            })
+            }),
         ]).start();
     };
 
-    keyboardHide = () => {
+    keyboardWillHide = () => {
         Animated.parallel([
-            Animated.timing(this.containerImageWidth, {
-                toValue: styles.$largeContainerSize,
+            Animated.timing(this.state.containerImageWidth, {
+                toValue: imageSizes.$largeContainerSize,
                 duration: ANIMATION_DURATION,
             }),
-            Animated.timing(this.imageWidth, {
-                toValue: styles.$largeImageSize,
+            Animated.timing(this.state.imageWidth, {
+                toValue: imageSizes.$largeImageSize,
                 duration: ANIMATION_DURATION,
-            })
-        ]).start()
+            }),
+        ]).start();
     };
 
     render() {
-        const containerImageStyle = [
+        const containerImageStyles = [
             styles.containerImage,
-            { width: this.containerImageWidth, height: this.containerImageWidth }
+            { width: this.state.containerImageWidth, height: this.state.containerImageWidth },
+        ];
+        const imageStyles = [
+            styles.logo,
+            { width: this.state.imageWidth },
+            this.props.tintColor ? { tintColor: this.props.tintColor } : null,
         ];
 
-        const imageStyle = [
-            styles.image,
-            { width: this.imageWidth, height: this.imageWidth },
-            this.props.tintColor ? { tintColor: this.props.tintColor } : null
-        ]
         return (
             <View style={styles.container}>
-                <Animated.Image resizeMode='contain' style={containerImageStyle} source={require('./images/background.png')} />
-                <Animated.Image resizeMode='contain' style={imageStyle} source={require('./images/logo.png')} />
-                <Text style={styles.text}>Currency Convertor</Text>
+                <Animated.View style={containerImageStyles}>
+                    <Animated.Image
+                        resizeMode="contain"
+                        style={[StyleSheet.absoluteFill, containerImageStyles]}
+                        source={require('./images/background.png')}
+                    />
+                    <Animated.Image
+                        resizeMode="contain"
+                        style={imageStyles}
+                        source={require('./images/logo.png')}
+                    />
+                </Animated.View>
+                <Text style={styles.text}>Currency Converter</Text>
             </View>
-        )
+        );
     }
 }
 
